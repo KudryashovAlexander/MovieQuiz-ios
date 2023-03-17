@@ -26,10 +26,8 @@ final class MovieQuizViewController: UIViewController , QuestionFactoryDelegate{
         }
     }
     
-    //лучший результат
-    private var bestResult = String()
-    //средняя точность
-    private var averageAccuracy: Double = 0.0
+    private var bestResult = String() //лучший результат
+    private var averageAccuracy: Double = 0.0 //средняя точность
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -76,20 +74,16 @@ final class MovieQuizViewController: UIViewController , QuestionFactoryDelegate{
     
     // Выводим алерт если закончилось кол-во вопросов
     private func show(quiz result: QuizResultsViewModel) {
-        let alert = UIAlertController(title: result.title,
-                                      message: result.text,
-                                      preferredStyle: .alert)
-
-        // создаём для него кнопки с действиями
-        let action = UIAlertAction(title: result.buttonText, style: .default) { [weak self] _ in
+        let alertModel = AlertModel(title: result.title,
+                                    message: result.text,
+                                    buttonText: result.buttonText)
+        let alertPresentation = AlertPresenter()
+        alertPresentation.showAlert(model: alertModel, viewController: self) { [weak self] in
             guard let self = self else {return}
-            // заново показываем первый вопрос
             self.questionFactory?.requestNextQuestion()
             self.currentQuestionIndex = 0 // Скидываем текщий индекс массива вопросов до 0
             self.correctAnswers = 0 //Скидываем счетчик правильных ответов до 0
         }
-        alert.addAction(action)
-        self.present(alert, animated: true, completion: nil)
     }
     
     // конвертация базы данных во вью
@@ -140,10 +134,7 @@ final class MovieQuizViewController: UIViewController , QuestionFactoryDelegate{
           self.currentQuizFinish += 1 // прибавляем количество сыгранных квизов
           accauracyAnswer = Double(correctAnswers)/Double(questionsAmount) // процент выигранных квизов
           averageAccuracy = (averageAccuracy + accauracyAnswer * 100)/Double(currentQuizFinish)
-//          let text = "Ваш результат: \(correctAnswers)/10" + "\n" + "Количество сыгранных квизов:\(currentQuizFinish)" + "\n" + "\(bestResult)" + "\n" + "Средняя точность: \(averageAccuracy)%"
-          let text = correctAnswers == questionsAmount ?
-                      "Поздравляем, Вы ответили на 10 из 10!" :
-                      "Вы ответили на \(correctAnswers) из 10, попробуйте ещё раз!"
+          let text = "Ваш результат: \(correctAnswers)/10" + "\n" + "Количество сыгранных квизов:\(currentQuizFinish)" + "\n" + "\(bestResult)" + "\n" + "Средняя точность: \(averageAccuracy)%"
           let viewModel = QuizResultsViewModel(
                       title: "Этот раунд окончен!",
                       text: text,
