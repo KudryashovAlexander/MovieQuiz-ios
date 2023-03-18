@@ -16,6 +16,7 @@ final class MovieQuizViewController: UIViewController , QuestionFactoryDelegate{
     private let questionsAmount: Int = 10  // Количество вопросов
     private var questionFactory: QuestionFactoryProtocol? //Класс базы данных
     private var currentQuestion: QuizQuestion? //текущий вопрос
+    private var alertFactory: AlertFactoryProtocol? //Модель alerta
     
     //точность ответов
     private var accauracyAnswer: Double = 0.0 {
@@ -76,14 +77,15 @@ final class MovieQuizViewController: UIViewController , QuestionFactoryDelegate{
     private func show(quiz result: QuizResultsViewModel) {
         let alertModel = AlertModel(title: result.title,
                                     message: result.text,
-                                    buttonText: result.buttonText)
-        let alertPresentation = AlertPresenter()
-        alertPresentation.showAlert(model: alertModel, viewController: self) { [weak self] in
-            guard let self = self else {return}
-            self.questionFactory?.requestNextQuestion()
-            self.currentQuestionIndex = 0 // Скидываем текщий индекс массива вопросов до 0
-            self.correctAnswers = 0 //Скидываем счетчик правильных ответов до 0
-        }
+                                    buttonText: result.buttonText,
+                                    completion: {[weak self] in
+                guard let self = self else {return}
+                self.currentQuestionIndex = 0 // Скидываем текщий индекс массива вопросов до 0
+                self.correctAnswers = 0 //Скидываем счетчик правильных ответов до 0
+                self.questionFactory?.requestNextQuestion()
+        })
+        alertFactory = AlertPresenter()
+        alertFactory?.showAlert(model: alertModel, viewController: self)
     }
     
     // конвертация базы данных во вью
