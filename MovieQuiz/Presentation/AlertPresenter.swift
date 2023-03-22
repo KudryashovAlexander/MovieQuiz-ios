@@ -7,7 +7,6 @@ class AlertPresenter: AlertFactoryProtocol {
                                   preferredStyle: .alert)
 
     let action = UIAlertAction(title: model.buttonText, style: .default) {  _ in
-        //guard self != nil else {return}
         model.completion()
     }
     alert.addAction(action)

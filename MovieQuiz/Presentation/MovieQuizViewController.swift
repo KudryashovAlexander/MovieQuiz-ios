@@ -5,30 +5,28 @@ final class MovieQuizViewController: UIViewController , QuestionFactoryDelegate{
     @IBOutlet private weak var imageView: UIImageView!
     @IBOutlet private weak var textLabel: UILabel!
     @IBOutlet private weak var counterLabel: UILabel!
-    //Добавил аутлеты кнопок для возможности изменения состояния isEnabled
     @IBOutlet private weak var yesButton: UIButton!
     @IBOutlet private weak var noButton: UIButton!
     
     private var currentQuestionIndex: Int = 0 //текущий индекс вопроса
     private var correctAnswers: Int = 0 //количество правильных ответов
-    private var currentQuizFinish: Int = 0 //количетсво сыгранных квизов
-    
     private let questionsAmount: Int = 10  // Количество вопросов
+    
     private var questionFactory: QuestionFactoryProtocol? //Класс базы данных
     private var currentQuestion: QuizQuestion? //текущий вопрос
-    private var alertFactory: AlertFactoryProtocol? //Модель alerta
     
-    //точность ответов
-    private var accauracyAnswer: Double = 0.0 {
-        willSet{
-            if newValue > self.accauracyAnswer {
-                bestResult = "Рекорд: \(correctAnswers)/\(questionsAmount) (" + Date().dateTimeString + ")"
-            }
-        }
+    private var alertFactory: AlertFactoryProtocol? //Модель alerta
+    private var statisticServiceImplementation:StatisticService = StatisticServiceImplementation()
+    private var bestGame: GameRecord {
+        statisticServiceImplementation.bestGame
     }
     
+    //точность ответов
+    private var accauracyAnswer: Double = 0.0
+    private var gamesCount: Int {
+        statisticServiceImplementation.gamesCount
+    }
     private var bestResult = String() //лучший результат
-    private var averageAccuracy: Double = 0.0 //средняя точность
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -133,15 +131,21 @@ final class MovieQuizViewController: UIViewController , QuestionFactoryDelegate{
     // Прошли квест или нет
     private func showNextQuestionOrResults() {
       if currentQuestionIndex == questionsAmount - 1 {
-          self.currentQuizFinish += 1 // прибавляем количество сыгранных квизов
-          accauracyAnswer = Double(correctAnswers)/Double(questionsAmount) // процент выигранных квизов
-          averageAccuracy = (averageAccuracy + accauracyAnswer * 100)/Double(currentQuizFinish)
-          let text = "Ваш результат: \(correctAnswers)/10" + "\n" + "Количество сыгранных квизов:\(currentQuizFinish)" + "\n" + "\(bestResult)" + "\n" + "Средняя точность: \(averageAccuracy)%"
+          statisticServiceImplementation.store(correct: correctAnswers, total: questionsAmount)
+          
+          //средняя точность за все игра
+          accauracyAnswer = statisticServiceImplementation.totalAccuracy * 100
+          bestResult = "Рекорд: \(bestGame.correct)/\(bestGame.total) (" + bestGame.date.dateTimeString + ")"
+          
+          let text = "Ваш результат: \(correctAnswers)/10" + "\n" + "Количество сыгранных квизов:\(statisticServiceImplementation.gamesCount)" + "\n" + "\(bestResult)" + "\n" + "Средняя точность:\(String(format: "%.2f", accauracyAnswer))%"
+          
           let viewModel = QuizResultsViewModel(
                       title: "Этот раунд окончен!",
                       text: text,
                       buttonText: "Сыграть ещё раз")
-                  show(quiz: viewModel)
+
+          show(quiz: viewModel)
+ 
 
       } else {
           currentQuestionIndex += 1
