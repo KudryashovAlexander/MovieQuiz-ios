@@ -5,13 +5,7 @@ final class StatisticServiceImplementation: StatisticService {
     //точность ответов
     var totalAccuracy: Double {
         get{
-            if let accuracy = userDefaults.string(forKey: Keys.totalAccuracy.rawValue) {
-                if let doubleAccuracy = Double(accuracy){
-                    return doubleAccuracy
-                }
-            }
-            print("Невозможно получить totalAccuracy")
-            return 0.0
+            return userDefaults.double(forKey: Keys.totalAccuracy.rawValue)
         }
         set {
             userDefaults.set(newValue, forKey: Keys.totalAccuracy.rawValue)
@@ -21,13 +15,7 @@ final class StatisticServiceImplementation: StatisticService {
     //количество игр
     var gamesCount: Int {
         get {
-            if let gameCount = userDefaults.string(forKey: Keys.gamesCount.rawValue) {
-                if let intGameCount = Int(gameCount){
-                    return intGameCount
-                }
-            }
-            print("Невозможно получить gamesCount!")
-            return 0
+            return userDefaults.integer(forKey: Keys.gamesCount.rawValue)
         }
         set {
             userDefaults.set(newValue, forKey: Keys.gamesCount.rawValue)
