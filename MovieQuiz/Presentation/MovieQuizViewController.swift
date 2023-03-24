@@ -15,7 +15,7 @@ final class MovieQuizViewController: UIViewController , QuestionFactoryDelegate{
     private var questionFactory: QuestionFactoryProtocol? //Класс базы данных
     private var currentQuestion: QuizQuestion? //текущий вопрос
     
-    private var alertFactory: AlertFactoryProtocol? //Модель alerta
+    private var alertFactory: AlertFactoryProtocol? = AlertPresenter()//Модель alerta
     private var statisticServiceImplementation:StatisticService = StatisticServiceImplementation()
     private var bestGame: GameRecord {
         statisticServiceImplementation.bestGame
@@ -82,7 +82,6 @@ final class MovieQuizViewController: UIViewController , QuestionFactoryDelegate{
                 self.correctAnswers = 0 //Скидываем счетчик правильных ответов до 0
                 self.questionFactory?.requestNextQuestion()
         })
-        alertFactory = AlertPresenter()
         alertFactory?.showAlert(model: alertModel, viewController: self)
     }
     
