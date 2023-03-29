@@ -54,7 +54,6 @@ final class StatisticServiceImplementation: StatisticService {
     }
     
     //Ключи для сохранения в UserDefaults
-    //ДОПОЛНИТЕЛЬНО К ЗАДАНИЮ ДОБАВИЛ СОХРАНЕНИЕ ПАРАМЕТРА totalAccuracy. ИНАЧЕ ПРИ ЗАКРЫТИИ ПРИЛОЖЕНИЯ НЕВОЗМОЖНО ОПРЕДЕЛИТЬ ТОЧНОЕ СРЕДНЕЕ ЗНАЧЕНИЕ ПРАВИЛЬНЫХ ОТВЕТОВ ЗА ВСЕ ИГРЫ, ТАК КАК СУММАРНОЕ КОЛИЧЕСТВО ПРАВИЛЬНЫХ ОТВЕТОВ НИГДЕ НЕ СОХРАНЯЕТСЯ. В ЗАДАНИИ ИМЕННО УКАЗАНО ОПРЕДЕЛИТЬ СРЕДНЮЮ ТОЧНОСТЬ ЗА ВСЕ ИГРЫ, ПРОШУ ПРОВЕРИТЬ.
     private enum Keys: String, CodingKey {
         case correct, total, bestGame, gamesCount, totalAccuracy
     }
