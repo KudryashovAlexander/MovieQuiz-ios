@@ -17,10 +17,6 @@ struct MoviesLoader: MoviesLoading {
     }
     
     func loadMovies(handler: @escaping (Result<MostPopularMovies, Error>) -> Void) {
-//        Используйте переменные networkClient и mostPopularMoviesUrl.
-//        В замыкании обработайте ошибочное состояние и передайте его дальше в handler.
-//        Преобразуйте данные в MostPopularMovies, используя JSONDecoder.
-//        Верните их, используя handler.
         
         networkClient.fetch(url: mostPopularMoviesUrl) { result in
             switch result {

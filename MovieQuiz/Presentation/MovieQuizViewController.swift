@@ -65,7 +65,8 @@ final class MovieQuizViewController: UIViewController , QuestionFactoryDelegate 
     
 
     func didFailToLoadData(with error: Error) {
-    showNetworkError(message: error.localizedDescription) // возьмём в качестве сообщения описание ошибки
+        print(error.localizedDescription)
+    showNetworkError(message: "Ошибка с Интернет соединением") // возьмём в качестве сообщения описание ошибки
     }
     
     // MARK: - Actions
@@ -108,24 +109,11 @@ final class MovieQuizViewController: UIViewController , QuestionFactoryDelegate 
     // конвертация базы данных во вью
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
         let image = UIImage(data: model.image)
-        if image == nil {
-            errorAlert()
-        }
         let imageForView = image ?? UIImage()
         return QuizStepViewModel(
             image: imageForView,
             question: model.text,
             questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
-    }
-    
-    // Вывод ошибки
-    private func errorAlert(){
-        let viewModel = QuizResultsViewModel(
-                    title: "Что-то пошло не так(",
-                    text: "Невозможно загрузить данные",
-                    buttonText: "Попробовать еще раз")
-                show(quiz: viewModel)
-        currentQuestionIndex = 0
     }
     
     // Выводим результат
@@ -156,7 +144,7 @@ final class MovieQuizViewController: UIViewController , QuestionFactoryDelegate 
       if currentQuestionIndex == questionsAmount - 1 {
           statisticService.store(correct: correctAnswers, total: questionsAmount)
           
-          //средняя точность за все игра
+          //средняя точность за все игры
           accauracyAnswer = statisticService.totalAccuracy * 100
           bestResult = "Рекорд: \(bestGame.correct)/\(bestGame.total) (" + bestGame.date.dateTimeString + ")"
           
@@ -192,7 +180,6 @@ final class MovieQuizViewController: UIViewController , QuestionFactoryDelegate 
         activityIndicator.stopAnimating() // заканчиваем анимацию
     }
     
-    
     //Ошибка, выводим алерт
     private func showNetworkError(message: String) {
         hideLoadingIndicator() // скрываем индикатор загрузки
@@ -203,8 +190,7 @@ final class MovieQuizViewController: UIViewController , QuestionFactoryDelegate 
                 
                 self.currentQuestionIndex = 0
                 self.correctAnswers = 0
-                
-                self.questionFactory?.requestNextQuestion()
+            self.questionFactory?.loadData()
             }
             
         alertPresenter?.showAlert(model: model, viewController: self)

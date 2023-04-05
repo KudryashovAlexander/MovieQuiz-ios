@@ -1,16 +1,17 @@
 import Foundation
 
 class QuestionFactory: QuestionFactoryProtocol {
-    private let moviesLoader: MoviesLoading
-    private weak var delegate: QuestionFactoryDelegate?
+    private let moviesLoader: MoviesLoading //отвечает за загрузку из сети
+    private weak var delegate: QuestionFactoryDelegate? //Для использования методов в QuestionFactoryDelegate, то есть в MovieQuizController
     
-    private var movies: [MostPopularMovie] = []
+    private var movies: [MostPopularMovie] = [] //Массив для сохранения фильмов (250 штук)
 
     init(moviesLoader: MoviesLoading, delegate: QuestionFactoryDelegate?) {
         self.moviesLoader = moviesLoader
         self.delegate = delegate
     }
     
+    //Метод загрузки массива данных
     func loadData() {
             moviesLoader.loadMovies { [weak self] result in
                 DispatchQueue.main.async {
@@ -72,13 +73,20 @@ class QuestionFactory: QuestionFactoryProtocol {
            do {
                 imageData = try Data(contentsOf: movie.resizedImageURL)
             } catch {
+                DispatchQueue.main.async {
+                    self.delegate?.didFailToLoadData(with: error)
+                }
                 print("Failed to load image")
+                return
             }
             
             let rating = Float(movie.rating) ?? 0
             
-            let text = "Рейтинг этого фильма больше чем 7?"
-            let correctAnswer = rating > 7
+            // NOTE: Добавлено изменение рейтинга в вопросе
+            let nextRaiting = (6...9).randomElement() ?? 0
+            
+            let text = "Рейтинг этого фильма больше чем \(nextRaiting)?"
+            let correctAnswer = rating > Float(nextRaiting)
             
             let question = QuizQuestion(image: imageData,
                                          text: text,
