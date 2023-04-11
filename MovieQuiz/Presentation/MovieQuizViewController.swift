@@ -43,6 +43,8 @@ final class MovieQuizViewController: UIViewController , QuestionFactoryDelegate 
 
         showLoadingIndicator()
         questionFactory?.loadData()
+        
+        activityIndicator.hidesWhenStopped = true
     }
     // MARK: - QuestionFactoryDelegate
 
@@ -165,18 +167,18 @@ final class MovieQuizViewController: UIViewController , QuestionFactoryDelegate 
 
       } else {
           currentQuestionIndex += 1
+          showLoadingIndicator() //включаем крутилку
           questionFactory?.requestNextQuestion()
+          hideLoadingIndicator() //отключаем крутилку
       }
     }
     //метод начинающий индикатор
     private func showLoadingIndicator() {
-        activityIndicator.isHidden = false // говорим, что индикатор загрузки не скрыт
         activityIndicator.startAnimating() // включаем анимацию
     }
     
     //метод заканчивающий индикатор
     private func hideLoadingIndicator()  {
-        activityIndicator.isHidden = true// говорим, что индикатор загрузки скрыт
         activityIndicator.stopAnimating() // заканчиваем анимацию
     }
     
