@@ -9,7 +9,6 @@ final class StatisticServiceImplementation: StatisticService {
         }
         set {
             userDefaults.set(newValue, forKey: Keys.totalAccuracy.rawValue)
-            print("totalAccuracy сохранено")
         }
     }
     //количество игр
@@ -19,7 +18,6 @@ final class StatisticServiceImplementation: StatisticService {
         }
         set {
             userDefaults.set(newValue, forKey: Keys.gamesCount.rawValue)
-            print("gamesCount сохранено")
         }
 
     }
@@ -38,23 +36,21 @@ final class StatisticServiceImplementation: StatisticService {
                 return
             }
             userDefaults.set(data, forKey: Keys.bestGame.rawValue)
-            print("bestGame сохранено")
         }
-        
     }
     //функция сохранения лучшего результата
     func store(correct count: Int, total amount: Int) {
         gamesCount += 1
-        totalAccuracy = (self.totalAccuracy * Double((gamesCount - 1)) + Double(count)/Double(amount))/Double(gamesCount)
+        if amount != 0 {
+            totalAccuracy = (self.totalAccuracy * Double((gamesCount - 1)) + Double(count)/Double(amount))/Double(gamesCount)
+        }
         let game = GameRecord(correct: count, total: amount, date: Date())
         if bestGame.newValueRecordIsBettter(game){
             bestGame = game
-            print("Записано новое значение рекорда")
         }
     }
     
     //Ключи для сохранения в UserDefaults
-    //ДОПОЛНИТЕЛЬНО К ЗАДАНИЮ ДОБАВИЛ СОХРАНЕНИЕ ПАРАМЕТРА totalAccuracy. ИНАЧЕ ПРИ ЗАКРЫТИИ ПРИЛОЖЕНИЯ НЕВОЗМОЖНО ОПРЕДЕЛИТЬ ТОЧНОЕ СРЕДНЕЕ ЗНАЧЕНИЕ ПРАВИЛЬНЫХ ОТВЕТОВ ЗА ВСЕ ИГРЫ, ТАК КАК СУММАРНОЕ КОЛИЧЕСТВО ПРАВИЛЬНЫХ ОТВЕТОВ НИГДЕ НЕ СОХРАНЯЕТСЯ. В ЗАДАНИИ ИМЕННО УКАЗАНО ОПРЕДЕЛИТЬ СРЕДНЮЮ ТОЧНОСТЬ ЗА ВСЕ ИГРЫ, ПРОШУ ПРОВЕРИТЬ.
     private enum Keys: String, CodingKey {
         case correct, total, bestGame, gamesCount, totalAccuracy
     }

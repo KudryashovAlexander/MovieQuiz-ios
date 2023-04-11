@@ -1,12 +1,16 @@
 import UIKit
 
-final class MovieQuizViewController: UIViewController , QuestionFactoryDelegate{
+final class MovieQuizViewController: UIViewController , QuestionFactoryDelegate {
+
+    
+    
     //MARK: - Outlets
     @IBOutlet private weak var imageView: UIImageView!
     @IBOutlet private weak var textLabel: UILabel!
     @IBOutlet private weak var counterLabel: UILabel!
     @IBOutlet private weak var yesButton: UIButton!
     @IBOutlet private weak var noButton: UIButton!
+    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
     private var currentQuestionIndex: Int = 0 //текущий индекс вопроса
     private var correctAnswers: Int = 0 //количество правильных ответов
@@ -15,24 +19,32 @@ final class MovieQuizViewController: UIViewController , QuestionFactoryDelegate{
     private var questionFactory: QuestionFactoryProtocol? //Класс базы данных
     private var currentQuestion: QuizQuestion? //текущий вопрос
     
-    private var alertFactory: AlertFactoryProtocol? = AlertPresenter()//Модель alerta
-    private var statisticServiceImplementation:StatisticService = StatisticServiceImplementation()
+    private var alertPresenter: AlertFactoryProtocol? = AlertPresenter()//Модель alerta
+    private var statisticService:StatisticService = StatisticServiceImplementation()
     private var bestGame: GameRecord {
-        statisticServiceImplementation.bestGame
+        statisticService.bestGame
     }
     
     //точность ответов
     private var accauracyAnswer: Double = 0.0
     private var gamesCount: Int {
-        statisticServiceImplementation.gamesCount
+        statisticService.gamesCount
     }
     private var bestResult = String() //лучший результат
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        questionFactory = QuestionFactory(delegate: self)
-        questionFactory?.requestNextQuestion()
+       
+       imageView.layer.cornerRadius = 20
+        
+        questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
+//        statisticService = StatisticServiceImplementation()
+
+        showLoadingIndicator()
+        questionFactory?.loadData()
+        
+        activityIndicator.hidesWhenStopped = true
     }
     // MARK: - QuestionFactoryDelegate
 
@@ -46,6 +58,17 @@ final class MovieQuizViewController: UIViewController , QuestionFactoryDelegate{
         DispatchQueue.main.async { [weak self] in
             self?.show(quiz: viewModel)
         }
+    }
+    
+    func didLoadDataFromServer() {
+        activityIndicator.isHidden = true // скрываем индикатор загрузки
+        questionFactory?.requestNextQuestion()
+    } 
+    
+
+    func didFailToLoadData(with error: Error) {
+        print(error.localizedDescription)
+    showNetworkError(message: "Ошибка с Интернет соединением") // возьмём в качестве сообщения описание ошибки
     }
     
     // MARK: - Actions
@@ -82,30 +105,17 @@ final class MovieQuizViewController: UIViewController , QuestionFactoryDelegate{
                 self.correctAnswers = 0 //Скидываем счетчик правильных ответов до 0
                 self.questionFactory?.requestNextQuestion()
         })
-        alertFactory?.showAlert(model: alertModel, viewController: self)
+        alertPresenter?.showAlert(model: alertModel, viewController: self)
     }
     
     // конвертация базы данных во вью
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
-        let image = UIImage(named: model.image)
-        if image == nil {
-            errorAlert()
-        }
+        let image = UIImage(data: model.image)
         let imageForView = image ?? UIImage()
         return QuizStepViewModel(
             image: imageForView,
             question: model.text,
             questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
-    }
-    
-    // Вывод ошибки
-    private func errorAlert(){
-        let viewModel = QuizResultsViewModel(
-                    title: "Что-то пошло не так(",
-                    text: "Невозможно загрузить данные",
-                    buttonText: "Попробовать еще раз")
-                show(quiz: viewModel)
-        currentQuestionIndex = 0
     }
     
     // Выводим результат
@@ -116,29 +126,33 @@ final class MovieQuizViewController: UIViewController , QuestionFactoryDelegate{
         imageView.layer.masksToBounds = true
         imageView.layer.borderWidth = 8
         self.imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
-        self.yesButton.isEnabled = false
-        self.noButton.isEnabled = false
+        self.reverseEnabledButton()
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
             guard let self = self else {return}
             self.imageView.layer.borderWidth = 0
             self.showNextQuestionOrResults()
-            self.yesButton.isEnabled = true
-            self.noButton.isEnabled = true
+            self.reverseEnabledButton()
         }
+    }
+    
+    //Функция отключения кнопок
+    private func reverseEnabledButton(){
+        self.yesButton.isEnabled = !yesButton.isEnabled
+        self.noButton.isEnabled = !noButton.isEnabled
     }
     
     // Прошли квест или нет
     private func showNextQuestionOrResults() {
       if currentQuestionIndex == questionsAmount - 1 {
-          statisticServiceImplementation.store(correct: correctAnswers, total: questionsAmount)
+          statisticService.store(correct: correctAnswers, total: questionsAmount)
           
-          //средняя точность за все игра
-          accauracyAnswer = statisticServiceImplementation.totalAccuracy * 100
+          //средняя точность за все игры
+          accauracyAnswer = statisticService.totalAccuracy * 100
           bestResult = "Рекорд: \(bestGame.correct)/\(bestGame.total) (" + bestGame.date.dateTimeString + ")"
           
           let text = """
             Ваш результат: \(correctAnswers)/10
-            Количество сыгранных квизов:\(statisticServiceImplementation.gamesCount)
+            Количество сыгранных квизов:\(statisticService.gamesCount)
             \(bestResult)
             Средняя точность:\(String(format: "%.2f", accauracyAnswer))%
             """
@@ -153,8 +167,36 @@ final class MovieQuizViewController: UIViewController , QuestionFactoryDelegate{
 
       } else {
           currentQuestionIndex += 1
+          showLoadingIndicator() //включаем крутилку
           questionFactory?.requestNextQuestion()
+          hideLoadingIndicator() //отключаем крутилку
       }
     }
+    //метод начинающий индикатор
+    private func showLoadingIndicator() {
+        activityIndicator.startAnimating() // включаем анимацию
+    }
+    
+    //метод заканчивающий индикатор
+    private func hideLoadingIndicator()  {
+        activityIndicator.stopAnimating() // заканчиваем анимацию
+    }
+    
+    //Ошибка, выводим алерт
+    private func showNetworkError(message: String) {
+        hideLoadingIndicator() // скрываем индикатор загрузки
+        let model = AlertModel(title: "Ошибка",
+                                   message: message,
+                                   buttonText: "Попробовать еще раз") { [weak self] in
+                guard let self = self else { return }
+                
+                self.currentQuestionIndex = 0
+                self.correctAnswers = 0
+            self.questionFactory?.loadData()
+            }
+            
+        alertPresenter?.showAlert(model: model, viewController: self)
+    }
+    
 }
 

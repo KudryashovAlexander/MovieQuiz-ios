@@ -6,7 +6,12 @@ struct GameRecord: Codable {
     
     //функция проверки нового значения со старым
     func newValueRecordIsBettter(_ newRecord: GameRecord) -> Bool {
-        print("Сработала проверка сторе")
-        return correct < newRecord.correct
+        if total == 0 || newRecord.total == 0 {
+            return false
+        }
+        if Double(correct)/Double(total) < Double(newRecord.correct)/Double(newRecord.total) {
+            return true
+        }
+        return false
     }
 }
