@@ -12,6 +12,24 @@ final class MovieQuizPresenter {
     var currentQuestion: QuizQuestion? //текущий вопрос
     weak var viewController: MovieQuizViewController?
     
+    var correctAnswers: Int = 0 //количество правильных ответов
+    
+    var questionFactory: QuestionFactoryProtocol?
+    var statisticService:StatisticService = StatisticServiceImplementation()
+    var bestGame: GameRecord {
+        statisticService.bestGame
+    }
+    
+    //точность ответов
+    private var accauracyAnswer: Double = 0.0
+    //Количество игр
+    private var gamesCount: Int {
+        statisticService.gamesCount
+    }
+    //Лучший результат
+    private var bestResult = String()
+
+    
     func convert(model: QuizQuestion) -> QuizStepViewModel {
         let image = UIImage(data: model.image)
         let imageForView = image ?? UIImage()
@@ -35,16 +53,64 @@ final class MovieQuizPresenter {
     
     //Кнопка Да
     func yesButtonClicked() {
-        guard let currentQuestion = currentQuestion else { return }
-        let giveAnswer = true
-        viewController?.showAnswerResult(isCorrect: giveAnswer == currentQuestion.correctAnswer)
+        didAnswer(isYes: true)
     }
     
     //Кнопка нет
     func noButtonClicked() {
+        didAnswer(isYes: false)
+    }
+    
+    private func didAnswer(isYes:Bool) {
         guard let currentQuestion = currentQuestion else { return }
-        let giveAnswer = false
-        viewController?.showAnswerResult(isCorrect: giveAnswer == currentQuestion.correctAnswer)
+        let givenAnswer = isYes
+        viewController?.showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+    }
+    
+    
+    func didReceiveNextQuestion(question: QuizQuestion?) {
+        guard let question = question else {
+            return
+        }
+        
+        currentQuestion = question
+        let viewModel = convert(model: question)
+        DispatchQueue.main.async { [weak self] in
+            self?.viewController?.show(quiz: viewModel)
+        }
+    }
+    
+    // Прошли квест или нет
+    func showNextQuestionOrResults() {
+        if self.isLastQuestion() {
+            //TODO: - Не работает извлечение bestGame correct и total
+            print("\(self.correctAnswers), \(self.questionsAmount)")
+            self.statisticService.store(correct: self.correctAnswers, total: self.questionsAmount)
+          //средняя точность за все игры
+          accauracyAnswer = statisticService.totalAccuracy * 100
+          bestResult = "Рекорд: \(bestGame.correct)/\(bestGame.total) (" + bestGame.date.dateTimeString + ")"
+          
+          let text = """
+            Ваш результат: \(correctAnswers)/10
+            Количество сыгранных квизов:\(statisticService.gamesCount)
+            \(bestResult)
+            Средняя точность:\(String(format: "%.2f", accauracyAnswer))%
+            """
+          
+          let viewModel = QuizResultsViewModel(
+                      title: "Этот раунд окончен!",
+                      text: text,
+                      buttonText: "Сыграть ещё раз")
+
+            viewController?.show(quiz: viewModel)
+ 
+
+      } else {
+          self.switchToNextQuestion()
+          viewController?.showLoadingIndicator() //включаем крутилку
+          questionFactory?.requestNextQuestion()
+          viewController?.hideLoadingIndicator() //отключаем крутилку
+      }
     }
     
     
