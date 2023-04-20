@@ -8,18 +8,15 @@
 import UIKit
 final class MovieQuizPresenter {
 
-    let questionsAmount: Int = 10  // Количество вопросов
+    private let questionsAmount: Int = 10  // Количество вопросов
     private var currentQuestionIndex: Int = 0 //текущий индекс вопроса
-    var currentQuestion: QuizQuestion? //текущий вопрос
+    private var currentQuestion: QuizQuestion? //текущий вопрос
     weak var viewController: MovieQuizViewController?//свзяь с вьюКонтроллером
     
-    var correctAnswers: Int = 0 //количество правильных ответов
+    private var correctAnswers: Int = 0 //количество правильных ответов
     
-    var questionFactory: QuestionFactoryProtocol? //массив вопросов
-    var statisticService:StatisticService! //подключение к UserDefaults
-    var bestGame: GameRecord {
-        statisticService.bestGame
-    }
+    private var questionFactory: QuestionFactoryProtocol? //массив вопросов
+    private var statisticService:StatisticService! //подключение к UserDefaults
 
     init(viewController: MovieQuizViewController) {
         self.viewController = viewController
@@ -31,7 +28,7 @@ final class MovieQuizPresenter {
     }
     
     //конвертация можели вопроса в модель вывода вопроса
-    func convert(model: QuizQuestion) -> QuizStepViewModel {
+    private func convert(model: QuizQuestion) -> QuizStepViewModel {
         let image = UIImage(data: model.image)
         let imageForView = image ?? UIImage()
         return QuizStepViewModel(
@@ -41,7 +38,7 @@ final class MovieQuizPresenter {
     }
     
     //проверка последний вопрос или нет
-    func isLastQuestion() -> Bool {
+    private func isLastQuestion() -> Bool {
         questionsAmount - 1 == currentQuestionIndex
     }
     
@@ -53,7 +50,7 @@ final class MovieQuizPresenter {
     }
     
     //Индекс текущего вопроса
-    func switchToNextQuestion() {
+    private func switchToNextQuestion() {
         currentQuestionIndex += 1
     }
     
@@ -75,14 +72,14 @@ final class MovieQuizPresenter {
     }
     
     //счетчик правильных вопросов
-    func didAnswer(isCorrectAnswer: Bool) {
+    private func didAnswer(isCorrectAnswer: Bool) {
         if isCorrectAnswer {
             correctAnswers += 1
         }
     }
     
     // Прошли квест или нет
-    func showNextQuestionOrResults() {
+    private func showNextQuestionOrResults() {
         if self.isLastQuestion() {
             let text = makeResultsMessage()
             let viewModel = QuizResultsViewModel(
@@ -102,7 +99,7 @@ final class MovieQuizPresenter {
     }
     
     //текст по результатам квиза
-    func makeResultsMessage() -> String {
+    private func makeResultsMessage() -> String {
         self.statisticService.store(correct: self.correctAnswers, total: self.questionsAmount)
         let bestGame = statisticService.bestGame
         let accauracyAnswer = statisticService.totalAccuracy * 100
@@ -118,7 +115,7 @@ final class MovieQuizPresenter {
     }
     
     //Добавляем на картинку рамку и цвет
-    func showAnswerResult(isCorrect: Bool) {
+    private func showAnswerResult(isCorrect: Bool) {
         didAnswer(isCorrectAnswer: isCorrect)
         viewController?.highlightImageBorder(isCorrectAnswer: isCorrect)
         viewController?.reverseEnabledButton()
