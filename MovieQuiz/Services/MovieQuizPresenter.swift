@@ -16,24 +16,16 @@ final class MovieQuizPresenter {
     var correctAnswers: Int = 0 //количество правильных ответов
     
     var questionFactory: QuestionFactoryProtocol?
-    var statisticService:StatisticService = StatisticServiceImplementation()
+    var statisticService:StatisticService!
     var bestGame: GameRecord {
         statisticService.bestGame
     }
-    
-    //точность ответов
-    private var accauracyAnswer: Double = 0.0
-    //Количество игр
-    private var gamesCount: Int {
-        statisticService.gamesCount
-    }
-    //Лучший результат
-    private var bestResult = String()
 
     init(viewController: MovieQuizViewController) {
         self.viewController = viewController
         
         questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
+        statisticService = StatisticServiceImplementation()
         questionFactory?.loadData()
         viewController.showLoadingIndicator()
     }
@@ -74,7 +66,7 @@ final class MovieQuizPresenter {
     private func didAnswer(isYes:Bool) {
         guard let currentQuestion = currentQuestion else { return }
         let givenAnswer = isYes
-        viewController?.showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+        showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
     }
     
     func didAnswer(isCorrectAnswer: Bool) {
@@ -86,24 +78,11 @@ final class MovieQuizPresenter {
     // Прошли квест или нет
     func showNextQuestionOrResults() {
         if self.isLastQuestion() {
-            //TODO: - Не работает извлечение bestGame correct и total
-            print("\(self.correctAnswers), \(self.questionsAmount)")
-            self.statisticService.store(correct: self.correctAnswers, total: self.questionsAmount)
-          //средняя точность за все игры
-          accauracyAnswer = statisticService.totalAccuracy * 100
-          bestResult = "Рекорд: \(bestGame.correct)/\(bestGame.total) (" + bestGame.date.dateTimeString + ")"
-          
-          let text = """
-            Ваш результат: \(correctAnswers)/10
-            Количество сыгранных квизов:\(statisticService.gamesCount)
-            \(bestResult)
-            Средняя точность:\(String(format: "%.2f", accauracyAnswer))%
-            """
-          
-          let viewModel = QuizResultsViewModel(
-                      title: "Этот раунд окончен!",
-                      text: text,
-                      buttonText: "Сыграть ещё раз")
+            let text = makeResultsMessage()
+            let viewModel = QuizResultsViewModel(
+                title: "Этот раунд окончен!",
+                text: text,
+                buttonText: "Сыграть ещё раз")
 
             viewController?.show(quiz: viewModel)
  
@@ -114,6 +93,34 @@ final class MovieQuizPresenter {
           questionFactory?.requestNextQuestion()
           viewController?.hideLoadingIndicator() //отключаем крутилку
       }
+    }
+    
+    func makeResultsMessage() -> String {
+        self.statisticService.store(correct: self.correctAnswers, total: self.questionsAmount)
+        let bestGame = statisticService.bestGame
+        let accauracyAnswer = statisticService.totalAccuracy * 100
+        let bestResult = "Рекорд: \(bestGame.correct)/\(bestGame.total) (" + bestGame.date.dateTimeString + ")"
+      
+      let text = """
+        Ваш результат: \(correctAnswers)/10
+        Количество сыгранных квизов:\(statisticService.gamesCount)
+        \(bestResult)
+        Средняя точность:\(String(format: "%.2f", accauracyAnswer))%
+        """
+        return text
+    }
+    
+    func showAnswerResult(isCorrect: Bool) {
+        didAnswer(isCorrectAnswer: isCorrect)
+        viewController?.highlightImageBorder(isCorrectAnswer: isCorrect)
+        viewController?.reverseEnabledButton()
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            guard let self = self else {return}
+            self.viewController?.imageBorderZero()
+            self.showNextQuestionOrResults()
+            self.viewController?.reverseEnabledButton()
+        }
     }
     
     

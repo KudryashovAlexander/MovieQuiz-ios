@@ -54,29 +54,38 @@ final class MovieQuizViewController: UIViewController {
                                     completion: {[weak self] in
                 guard let self = self else {return}
             self.presenter.restartGame()
-            self.presenter.questionFactory?.requestNextQuestion()
         })
         alertPresenter?.showAlert(model: alertModel, viewController: self)
     }
     
     // Выводим результат
-    func showAnswerResult(isCorrect: Bool) {
-        self.presenter.didAnswer(isCorrectAnswer: isCorrect)
+//    func showAnswerResult(isCorrect: Bool) {
+//        self.presenter.didAnswer(isCorrectAnswer: isCorrect)
+//        imageView.layer.masksToBounds = true
+//        imageView.layer.borderWidth = 8
+//        self.imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
+//        self.reverseEnabledButton()
+//
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+//            guard let self = self else {return}
+//            self.imageView.layer.borderWidth = 0
+//            self.presenter.showNextQuestionOrResults()
+//            self.reverseEnabledButton()
+//        }
+//    }
+    
+    func highlightImageBorder(isCorrectAnswer: Bool) {
         imageView.layer.masksToBounds = true
         imageView.layer.borderWidth = 8
-        self.imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
-        self.reverseEnabledButton()
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-            guard let self = self else {return}
-            self.imageView.layer.borderWidth = 0
-            self.presenter.showNextQuestionOrResults()
-            self.reverseEnabledButton()
-        }
+        imageView.layer.borderColor = isCorrectAnswer ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
+    }
+    
+    func imageBorderZero(){
+        imageView.layer.borderWidth = 0
     }
     
     //Функция отключения кнопок
-    private func reverseEnabledButton(){
+    func reverseEnabledButton(){
         self.yesButton.isEnabled = !yesButton.isEnabled
         self.noButton.isEnabled = !noButton.isEnabled
     }
