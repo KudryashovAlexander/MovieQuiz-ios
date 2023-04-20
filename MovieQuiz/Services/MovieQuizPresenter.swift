@@ -11,12 +11,12 @@ final class MovieQuizPresenter {
     let questionsAmount: Int = 10  // Количество вопросов
     private var currentQuestionIndex: Int = 0 //текущий индекс вопроса
     var currentQuestion: QuizQuestion? //текущий вопрос
-    weak var viewController: MovieQuizViewController?
+    weak var viewController: MovieQuizViewController?//свзяь с вьюКонтроллером
     
     var correctAnswers: Int = 0 //количество правильных ответов
     
-    var questionFactory: QuestionFactoryProtocol?
-    var statisticService:StatisticService!
+    var questionFactory: QuestionFactoryProtocol? //массив вопросов
+    var statisticService:StatisticService! //подключение к UserDefaults
     var bestGame: GameRecord {
         statisticService.bestGame
     }
@@ -30,6 +30,7 @@ final class MovieQuizPresenter {
         viewController.showLoadingIndicator()
     }
     
+    //конвертация можели вопроса в модель вывода вопроса
     func convert(model: QuizQuestion) -> QuizStepViewModel {
         let image = UIImage(data: model.image)
         let imageForView = image ?? UIImage()
@@ -39,16 +40,19 @@ final class MovieQuizPresenter {
             questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
     }
     
+    //проверка последний вопрос или нет
     func isLastQuestion() -> Bool {
         questionsAmount - 1 == currentQuestionIndex
     }
     
+    //пререгрузка игры
     func restartGame() {
         currentQuestionIndex = 0
         correctAnswers = 0
         questionFactory?.requestNextQuestion()
     }
     
+    //Индекс текущего вопроса
     func switchToNextQuestion() {
         currentQuestionIndex += 1
     }
@@ -63,12 +67,14 @@ final class MovieQuizPresenter {
         didAnswer(isYes: false)
     }
     
+    //текущий вопрос
     private func didAnswer(isYes:Bool) {
         guard let currentQuestion = currentQuestion else { return }
         let givenAnswer = isYes
         showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
     }
     
+    //счетчик правильных вопросов
     func didAnswer(isCorrectAnswer: Bool) {
         if isCorrectAnswer {
             correctAnswers += 1
@@ -95,6 +101,7 @@ final class MovieQuizPresenter {
       }
     }
     
+    //текст по результатам квиза
     func makeResultsMessage() -> String {
         self.statisticService.store(correct: self.correctAnswers, total: self.questionsAmount)
         let bestGame = statisticService.bestGame
@@ -110,6 +117,7 @@ final class MovieQuizPresenter {
         return text
     }
     
+    //Добавляем на картинку рамку и цвет
     func showAnswerResult(isCorrect: Bool) {
         didAnswer(isCorrectAnswer: isCorrect)
         viewController?.highlightImageBorder(isCorrectAnswer: isCorrect)
@@ -128,7 +136,7 @@ final class MovieQuizPresenter {
 
 // MARK: - QuestionFactoryDelegate
 extension MovieQuizPresenter: QuestionFactoryDelegate {
-
+    //Показываем следующий вопрос
     func didReceiveNextQuestion(question: QuizQuestion?) {
         guard let question = question else { return }
         currentQuestion = question
@@ -137,13 +145,13 @@ extension MovieQuizPresenter: QuestionFactoryDelegate {
             self?.viewController?.show(quiz: viewModel)
         }
     }
-    
+    //Данные успешно загружены
     func didLoadDataFromServer() {
         viewController?.hideLoadingIndicator()
         questionFactory?.requestNextQuestion()
     }
     
-
+    // Метод при ошибку сети
     func didFailToLoadData(with error: Error) {
         print(error.localizedDescription)
         viewController?.showNetworkError(message: "Ошибка с Интернет соединением")

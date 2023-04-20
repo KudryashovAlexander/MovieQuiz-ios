@@ -19,11 +19,8 @@ final class MovieQuizViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         presenter = MovieQuizPresenter(viewController: self)
-        
         imageView.layer.cornerRadius = 20
-        
         showLoadingIndicator()
-        
         activityIndicator.hidesWhenStopped = true
     }
     
@@ -58,28 +55,14 @@ final class MovieQuizViewController: UIViewController {
         alertPresenter?.showAlert(model: alertModel, viewController: self)
     }
     
-    // Выводим результат
-//    func showAnswerResult(isCorrect: Bool) {
-//        self.presenter.didAnswer(isCorrectAnswer: isCorrect)
-//        imageView.layer.masksToBounds = true
-//        imageView.layer.borderWidth = 8
-//        self.imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
-//        self.reverseEnabledButton()
-//
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-//            guard let self = self else {return}
-//            self.imageView.layer.borderWidth = 0
-//            self.presenter.showNextQuestionOrResults()
-//            self.reverseEnabledButton()
-//        }
-//    }
-    
+    //Добавляем рамку на картинку по результату ответа
     func highlightImageBorder(isCorrectAnswer: Bool) {
         imageView.layer.masksToBounds = true
         imageView.layer.borderWidth = 8
         imageView.layer.borderColor = isCorrectAnswer ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
     }
     
+    //Обнуляем толщину бордера картинки
     func imageBorderZero(){
         imageView.layer.borderWidth = 0
     }
