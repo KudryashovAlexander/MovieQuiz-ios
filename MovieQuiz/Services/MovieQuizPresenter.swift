@@ -11,14 +11,14 @@ final class MovieQuizPresenter {
     private let questionsAmount: Int = 10  // Количество вопросов
     private var currentQuestionIndex: Int = 0 //текущий индекс вопроса
     private var currentQuestion: QuizQuestion? //текущий вопрос
-    weak var viewController: MovieQuizViewController?//свзяь с вьюКонтроллером
+    weak var viewController: MovieQuizViewControllerProtocol?//свзяь с вьюКонтроллером
     
     private var correctAnswers: Int = 0 //количество правильных ответов
     
     private var questionFactory: QuestionFactoryProtocol? //массив вопросов
     private var statisticService:StatisticService! //подключение к UserDefaults
 
-    init(viewController: MovieQuizViewController) {
+    init(viewController: MovieQuizViewControllerProtocol) {
         self.viewController = viewController
         
         questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
@@ -28,7 +28,7 @@ final class MovieQuizPresenter {
     }
     
     //конвертация можели вопроса в модель вывода вопроса
-    private func convert(model: QuizQuestion) -> QuizStepViewModel {
+    func convert(model: QuizQuestion) -> QuizStepViewModel {
         let image = UIImage(data: model.image)
         let imageForView = image ?? UIImage()
         return QuizStepViewModel(
