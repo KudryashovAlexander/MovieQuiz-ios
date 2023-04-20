@@ -3,4 +3,4 @@ protocol QuestionFactoryDelegate: AnyObject {
     func didLoadDataFromServer() // сообщение об успешной загрузке
     func didFailToLoadData(with error: Error) // сообщение об ошибке загрузки
 }
-//Протокол для Делегата (ViewController), чтобы на нем был реализован метод
+//Протокол для Делегата (ViewPresenter), чтобы на нем был реализован метод

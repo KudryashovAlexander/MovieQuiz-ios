@@ -7,6 +7,7 @@
 
 import UIKit
 final class MovieQuizPresenter {
+
     let questionsAmount: Int = 10  // Количество вопросов
     private var currentQuestionIndex: Int = 0 //текущий индекс вопроса
     var currentQuestion: QuizQuestion? //текущий вопрос
@@ -29,6 +30,13 @@ final class MovieQuizPresenter {
     //Лучший результат
     private var bestResult = String()
 
+    init(viewController: MovieQuizViewController) {
+        self.viewController = viewController
+        
+        questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
+        questionFactory?.loadData()
+        viewController.showLoadingIndicator()
+    }
     
     func convert(model: QuizQuestion) -> QuizStepViewModel {
         let image = UIImage(data: model.image)
@@ -43,8 +51,10 @@ final class MovieQuizPresenter {
         questionsAmount - 1 == currentQuestionIndex
     }
     
-    func resetQuestionIndex() {
+    func restartGame() {
         currentQuestionIndex = 0
+        correctAnswers = 0
+        questionFactory?.requestNextQuestion()
     }
     
     func switchToNextQuestion() {
@@ -67,16 +77,9 @@ final class MovieQuizPresenter {
         viewController?.showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
     }
     
-    
-    func didReceiveNextQuestion(question: QuizQuestion?) {
-        guard let question = question else {
-            return
-        }
-        
-        currentQuestion = question
-        let viewModel = convert(model: question)
-        DispatchQueue.main.async { [weak self] in
-            self?.viewController?.show(quiz: viewModel)
+    func didAnswer(isCorrectAnswer: Bool) {
+        if isCorrectAnswer {
+            correctAnswers += 1
         }
     }
     
@@ -116,3 +119,26 @@ final class MovieQuizPresenter {
     
 }
 
+// MARK: - QuestionFactoryDelegate
+extension MovieQuizPresenter: QuestionFactoryDelegate {
+
+    func didReceiveNextQuestion(question: QuizQuestion?) {
+        guard let question = question else { return }
+        currentQuestion = question
+        let viewModel = convert(model: question)
+        DispatchQueue.main.async { [weak self] in
+            self?.viewController?.show(quiz: viewModel)
+        }
+    }
+    
+    func didLoadDataFromServer() {
+        viewController?.hideLoadingIndicator()
+        questionFactory?.requestNextQuestion()
+    }
+    
+
+    func didFailToLoadData(with error: Error) {
+        print(error.localizedDescription)
+        viewController?.showNetworkError(message: "Ошибка с Интернет соединением")
+    }
+}
