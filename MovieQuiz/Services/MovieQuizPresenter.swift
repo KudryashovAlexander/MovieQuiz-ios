@@ -37,29 +37,24 @@ final class MovieQuizPresenter {
             questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
     }
     
-    //проверка последний вопрос или нет
     private func isLastQuestion() -> Bool {
         questionsAmount - 1 == currentQuestionIndex
     }
     
-    //пререгрузка игры
     func restartGame() {
         currentQuestionIndex = 0
         correctAnswers = 0
         questionFactory?.requestNextQuestion()
     }
     
-    //Индекс текущего вопроса
     private func switchToNextQuestion() {
         currentQuestionIndex += 1
     }
     
-    //Кнопка Да
     func yesButtonClicked() {
         didAnswer(isYes: true)
     }
     
-    //Кнопка нет
     func noButtonClicked() {
         didAnswer(isYes: false)
     }
