@@ -51,7 +51,7 @@ final class MovieQuizUITests: XCTestCase {
 //        XCTAssertTrue(secondPoster.exists) //Проверяем появление второго постера
                 
         XCTAssertNotEqual(firstPosterData, secondPosterData) //Проверяем, что постеры разные
-        XCTAssertEqual(indexLabel.label, "2/10") //Проверяем, номер вопроса разный
+        XCTAssertEqual(indexLabel.label, "2/10") //Проверяем, номер второго вопроса 2/10
 
     }
     
