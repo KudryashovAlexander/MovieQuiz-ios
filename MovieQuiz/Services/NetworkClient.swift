@@ -1,7 +1,11 @@
 
 import Foundation
 /// Отвечает за загрузку данных по URL
-class NetworkClient {
+///
+protocol NetworkRouting {
+func fetch(url: URL, handler: @escaping (Result<Data, Error>) -> Void)
+}
+class NetworkClient:NetworkRouting {
 
     private enum NetworkError: Error {
         case codeError
