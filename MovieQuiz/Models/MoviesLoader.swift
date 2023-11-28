@@ -5,6 +5,11 @@ protocol MoviesLoading {
 
 struct MoviesLoader: MoviesLoading {
     
+    private enum Constants {
+        static let urlString = "https://imdb-api.com/en/API/Top250Movies/"
+        static let apiKeyString = "k_okx6f4il"
+    }
+    
     // MARK: - NetworkClient
     private let networkClient: NetworkRouting
     
@@ -13,8 +18,7 @@ struct MoviesLoader: MoviesLoading {
     }
     // MARK: - URL
     private var mostPopularMoviesUrl: URL {
-        // Если мы не смогли преобразовать строку в URL, то приложение упадёт с ошибкой
-        guard let url = URL(string: "https://imdb-api.com/en/API/Top250Movies/k_okx6f4il") else {
+        guard let url = URL(string: Constants.urlString + Constants.apiKeyString) else {
             preconditionFailure("Unable to construct mostPopularMoviesUrl")
         }
         return url

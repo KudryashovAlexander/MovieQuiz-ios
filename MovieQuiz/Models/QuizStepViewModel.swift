@@ -1,4 +1,3 @@
-// Модель для состояния "Вопрос задан"
 import UIKit
 struct QuizStepViewModel {
   let image: UIImage
