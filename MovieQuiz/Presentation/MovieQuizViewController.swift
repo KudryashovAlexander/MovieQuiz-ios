@@ -2,8 +2,6 @@ import UIKit
 
 final class MovieQuizViewController: UIViewController, MovieQuizViewControllerProtocol {
 
-    
-    
     //MARK: - Outlets
     @IBOutlet private weak var imageView: UIImageView!
     @IBOutlet private weak var textLabel: UILabel!
@@ -13,7 +11,7 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
             
     private var presenter: MovieQuizPresenter!
-    private var alertPresenter: AlertFactoryProtocol? = AlertPresenter()//Модель alerta    
+    private var alertPresenter: AlertFactoryProtocol? = AlertPresenter()
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -25,25 +23,20 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
     }
     
     // MARK: - Actions
-    
-    //Кнопка Да
     @IBAction private func yesButtonClicked(_ sender: Any) {
         presenter.yesButtonClicked()
     }
     
-    //Кнопка Нет
     @IBAction private func noButtonClicked(_ sender: Any) {
         presenter.noButtonClicked()
     }
     
-    //Передаем картинку, вопрос и номер вопроса в оутлет
     func show(quiz step: QuizStepViewModel){
         imageView.image = step.image
         textLabel.text = step.question
         counterLabel.text = step.questionNumber
     }
     
-    // Выводим алерт если закончилось кол-во вопросов
     func show(quiz result: QuizResultsViewModel) {
         let alertModel = AlertModel(title: result.title,
                                     message: result.text,
@@ -55,47 +48,38 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
         alertPresenter?.showAlert(model: alertModel, viewController: self)
     }
     
-    //Добавляем рамку на картинку по результату ответа
     func highlightImageBorder(isCorrectAnswer: Bool) {
         imageView.layer.masksToBounds = true
         imageView.layer.borderWidth = 8
         imageView.layer.borderColor = isCorrectAnswer ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
     }
     
-    //Обнуляем толщину бордера картинки
     func imageBorderZero(){
         imageView.layer.borderWidth = 0
     }
     
-    //Функция отключения кнопок
     func reverseEnabledButton(){
         self.yesButton.isEnabled = !yesButton.isEnabled
         self.noButton.isEnabled = !noButton.isEnabled
     }
 
-    //метод начинающий индикатор
     func showLoadingIndicator() {
-        activityIndicator.startAnimating() // включаем анимацию
+        activityIndicator.startAnimating()
     }
     
-    //метод заканчивающий индикатор
     func hideLoadingIndicator()  {
-        activityIndicator.stopAnimating() // заканчиваем анимацию
+        activityIndicator.stopAnimating()
     }
     
-    //Ошибка, выводим алерт
     func showNetworkError(message: String) {
-        hideLoadingIndicator() // скрываем индикатор загрузки
+        hideLoadingIndicator()
         let model = AlertModel(title: "Ошибка",
-                                   message: message,
-                                   buttonText: "Попробовать еще раз") { [weak self] in
-                guard let self = self else { return }
-                
-            self.presenter.restartGame()
-            }
+                               message: message,
+                               buttonText: "Попробовать еще раз") { [weak self] in
+            guard let self = self else { return }
             
+            self.presenter.restartGame()
+        }
         alertPresenter?.showAlert(model: model, viewController: self)
     }
-    
 }
-

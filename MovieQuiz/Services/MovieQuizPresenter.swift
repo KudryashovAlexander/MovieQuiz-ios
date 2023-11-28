@@ -8,15 +8,15 @@
 import UIKit
 final class MovieQuizPresenter {
 
-    private let questionsAmount: Int = 10  // Количество вопросов
-    private var currentQuestionIndex: Int = 0 //текущий индекс вопроса
-    private var currentQuestion: QuizQuestion? //текущий вопрос
-    weak var viewController: MovieQuizViewControllerProtocol?//свзяь с вьюКонтроллером
+    private let questionsAmount: Int = 10
+    private var currentQuestionIndex: Int = 0
+    private var currentQuestion: QuizQuestion?
+    weak var viewController: MovieQuizViewControllerProtocol?
     
-    private var correctAnswers: Int = 0 //количество правильных ответов
+    private var correctAnswers: Int = 0
     
-    private var questionFactory: QuestionFactoryProtocol? //массив вопросов
-    private var statisticService:StatisticService! //подключение к UserDefaults
+    private var questionFactory: QuestionFactoryProtocol?
+    private var statisticService:StatisticService!
 
     init(viewController: MovieQuizViewControllerProtocol) {
         self.viewController = viewController
@@ -27,7 +27,6 @@ final class MovieQuizPresenter {
         viewController.showLoadingIndicator()
     }
     
-    //конвертация можели вопроса в модель вывода вопроса
     func convert(model: QuizQuestion) -> QuizStepViewModel {
         let image = UIImage(data: model.image)
         let imageForView = image ?? UIImage()
@@ -59,21 +58,18 @@ final class MovieQuizPresenter {
         didAnswer(isYes: false)
     }
     
-    //текущий вопрос
     private func didAnswer(isYes:Bool) {
         guard let currentQuestion = currentQuestion else { return }
         let givenAnswer = isYes
         showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
     }
     
-    //счетчик правильных вопросов
     private func didAnswer(isCorrectAnswer: Bool) {
         if isCorrectAnswer {
             correctAnswers += 1
         }
     }
     
-    // Прошли квест или нет
     private func showNextQuestionOrResults() {
         if self.isLastQuestion() {
             let text = makeResultsMessage()
@@ -81,19 +77,15 @@ final class MovieQuizPresenter {
                 title: "Этот раунд окончен!",
                 text: text,
                 buttonText: "Сыграть ещё раз")
-
             viewController?.show(quiz: viewModel)
- 
-
       } else {
           self.switchToNextQuestion()
-          viewController?.showLoadingIndicator() //включаем крутилку
+          viewController?.showLoadingIndicator()
           questionFactory?.requestNextQuestion()
-          viewController?.hideLoadingIndicator() //отключаем крутилку
+          viewController?.hideLoadingIndicator()
       }
     }
     
-    //текст по результатам квиза
     private func makeResultsMessage() -> String {
         self.statisticService.store(correct: self.correctAnswers, total: self.questionsAmount)
         let bestGame = statisticService.bestGame
@@ -109,7 +101,6 @@ final class MovieQuizPresenter {
         return text
     }
     
-    //Добавляем на картинку рамку и цвет
     private func showAnswerResult(isCorrect: Bool) {
         didAnswer(isCorrectAnswer: isCorrect)
         viewController?.highlightImageBorder(isCorrectAnswer: isCorrect)
@@ -122,13 +113,11 @@ final class MovieQuizPresenter {
             self.viewController?.reverseEnabledButton()
         }
     }
-    
-    
 }
 
 // MARK: - QuestionFactoryDelegate
 extension MovieQuizPresenter: QuestionFactoryDelegate {
-    //Показываем следующий вопрос
+    
     func didReceiveNextQuestion(question: QuizQuestion?) {
         guard let question = question else { return }
         currentQuestion = question
@@ -137,13 +126,12 @@ extension MovieQuizPresenter: QuestionFactoryDelegate {
             self?.viewController?.show(quiz: viewModel)
         }
     }
-    //Данные успешно загружены
+    
     func didLoadDataFromServer() {
         viewController?.hideLoadingIndicator()
         questionFactory?.requestNextQuestion()
     }
     
-    // Метод при ошибку сети
     func didFailToLoadData(with error: Error) {
         print(error.localizedDescription)
         viewController?.showNetworkError(message: "Ошибка с Интернет соединением")

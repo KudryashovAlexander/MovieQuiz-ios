@@ -2,7 +2,6 @@ import Foundation
 final class StatisticServiceImplementation: StatisticService {
     private let userDefaults = UserDefaults.standard
     
-    //точность ответов
     var totalAccuracy: Double {
         get{
             return userDefaults.double(forKey: Keys.totalAccuracy.rawValue)
@@ -11,7 +10,7 @@ final class StatisticServiceImplementation: StatisticService {
             userDefaults.set(newValue, forKey: Keys.totalAccuracy.rawValue)
         }
     }
-    //количество игр
+    
     var gamesCount: Int {
         get {
             return userDefaults.integer(forKey: Keys.gamesCount.rawValue)
@@ -21,7 +20,7 @@ final class StatisticServiceImplementation: StatisticService {
         }
 
     }
-    // лучшая игра
+    
     var bestGame: GameRecord {
         get {
             guard let data = userDefaults.data(forKey: Keys.bestGame.rawValue),
@@ -38,7 +37,7 @@ final class StatisticServiceImplementation: StatisticService {
             userDefaults.set(data, forKey: Keys.bestGame.rawValue)
         }
     }
-    //функция сохранения лучшего результата
+    
     func store(correct count: Int, total amount: Int) {
         gamesCount += 1
         if amount != 0 {
@@ -50,7 +49,6 @@ final class StatisticServiceImplementation: StatisticService {
         }
     }
     
-    //Ключи для сохранения в UserDefaults
     private enum Keys: String, CodingKey {
         case correct, total, bestGame, gamesCount, totalAccuracy
     }
